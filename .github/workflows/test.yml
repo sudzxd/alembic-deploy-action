@@ -23,7 +23,7 @@ jobs:
           dry-run: true
           working-directory: tests/test_app
           alembic-config: alembic.ini
-          revision: 002
+          revision: "002"
           analyze-safety: true
 
       - name: Display safe migration results
@@ -41,7 +41,7 @@ jobs:
           dry-run: true
           working-directory: tests/test_app
           alembic-config: alembic.ini
-          revision: 003
+          revision: "003"
           analyze-safety: true
           fail-on-danger: false
 
@@ -71,7 +71,7 @@ jobs:
           database-url: sqlite:///test.db
           working-directory: tests/test_app
           alembic-config: alembic.ini
-          revision: 001
+          revision: "001"
 
       - name: Check current revision
         id: check_rev
@@ -104,7 +104,7 @@ jobs:
           database-url: sqlite:///test.db
           working-directory: tests/test_app
           command: upgrade
-          revision: 001
+          revision: "001"
 
       - name: Test current command
         uses: ./
