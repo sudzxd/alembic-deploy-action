@@ -1,0 +1,4 @@
+# ShellCheck configuration
+disable=SC2086
+disable=SC2181
+enable=all

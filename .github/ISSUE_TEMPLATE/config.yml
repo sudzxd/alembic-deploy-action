@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/sudzxd/alembic-deploy-action/blob/master/README.md
+    about: Read the documentation
+  - name: Examples
+    url: https://github.com/sudzxd/alembic-deploy-action/tree/master/examples
+    about: View example workflows
