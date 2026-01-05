@@ -1,0 +1,46 @@
+name: Multi-Environment Migration
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Preview Migration
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: ${{ secrets.STAGING_DATABASE_URL }}
+          dry-run: true
+          analyze-safety: true
+          fail-on-danger: true
+
+  staging:
+    needs: preview
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Migrate Staging Database
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: ${{ secrets.STAGING_DATABASE_URL }}
+
+  production:
+    needs: staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Migrate Production Database
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: ${{ secrets.PRODUCTION_DATABASE_URL }}

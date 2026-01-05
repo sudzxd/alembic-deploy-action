@@ -1,0 +1,49 @@
+name: Production Migration
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    outputs:
+      is-safe: ${{ steps.preview.outputs.is-safe }}
+      sql: ${{ steps.preview.outputs.sql-preview }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Preview Migration
+        id: preview
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: ${{ secrets.DATABASE_URL }}
+          dry-run: true
+          analyze-safety: true
+
+      - name: Display Preview
+        run: |
+          echo "Migration Preview:"
+          echo "${{ steps.preview.outputs.sql-preview }}"
+          echo ""
+          echo "Safety Status: ${{ steps.preview.outputs.is-safe }}"
+
+  apply:
+    needs: preview
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Apply Migration
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify Migration
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: ${{ secrets.DATABASE_URL }}
+          command: current

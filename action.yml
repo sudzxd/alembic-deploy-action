@@ -1,0 +1,79 @@
+name: 'Alembic Deploy Action'
+description: 'Safe Alembic database migrations with dry-run preview, validation, and approval workflows'
+author: 'sudzxd'
+
+branding:
+  icon: 'database'
+  color: 'blue'
+
+inputs:
+  database-url:
+    description: 'Database connection string (use GitHub secrets)'
+    required: true
+
+  command:
+    description: 'Alembic command to run (upgrade, downgrade, current, history, show)'
+    required: false
+    default: 'upgrade'
+
+  revision:
+    description: 'Target revision (default: head)'
+    required: false
+    default: 'head'
+
+  dry-run:
+    description: 'Show SQL without executing (dry-run mode)'
+    required: false
+    default: 'false'
+
+  alembic-config:
+    description: 'Path to alembic.ini file'
+    required: false
+    default: 'alembic.ini'
+
+  working-directory:
+    description: 'Working directory where alembic commands will run'
+    required: false
+    default: '.'
+
+  analyze-safety:
+    description: 'Analyze SQL for dangerous operations (DROP, ALTER, etc.)'
+    required: false
+    default: 'true'
+
+  fail-on-danger:
+    description: 'Fail if dangerous operations detected'
+    required: false
+    default: 'false'
+
+outputs:
+  migration-status:
+    description: 'Migration status (success, failed, skipped, dry-run)'
+
+  current-revision:
+    description: 'Current database revision'
+
+  target-revision:
+    description: 'Target revision'
+
+  sql-preview:
+    description: 'Generated SQL (only in dry-run mode)'
+
+  warnings:
+    description: 'Safety warnings detected'
+
+  is-safe:
+    description: 'Whether migration is considered safe (true/false)'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    DATABASE_URL: ${{ inputs.database-url }}
+    ALEMBIC_COMMAND: ${{ inputs.command }}
+    ALEMBIC_REVISION: ${{ inputs.revision }}
+    DRY_RUN: ${{ inputs.dry-run }}
+    ALEMBIC_CONFIG: ${{ inputs.alembic-config }}
+    WORKING_DIR: ${{ inputs.working-directory }}
+    ANALYZE_SAFETY: ${{ inputs.analyze-safety }}
+    FAIL_ON_DANGER: ${{ inputs.fail-on-danger }}
