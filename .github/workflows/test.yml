@@ -68,7 +68,7 @@ jobs:
       - name: Apply initial migration
         uses: ./
         with:
-          database-url: sqlite:///test.db
+          database-url: sqlite:////github/workspace/test.db
           working-directory: tests/test_app
           alembic-config: alembic.ini
           revision: "001"
@@ -77,7 +77,7 @@ jobs:
         id: check_rev
         uses: ./
         with:
-          database-url: sqlite:///test.db
+          database-url: sqlite:////github/workspace/test.db
           working-directory: tests/test_app
           alembic-config: alembic.ini
           command: current
