@@ -89,6 +89,9 @@ jobs:
     name: Validate Action Version
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Test with v1 tag
         uses: sudzxd/alembic-deploy-action@v1
         with:
@@ -106,4 +109,4 @@ jobs:
           command: current
 
       - name: Verify version tags work
-        run: echo "SUCCESS: Both v1 and v1.0.0 tags work correctly"
+        run: echo "SUCCESS - Both v1 and v1.0.0 tags work correctly"
