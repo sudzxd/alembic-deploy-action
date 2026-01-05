@@ -66,30 +66,35 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Apply initial migration
+        id: migrate
         uses: ./
         with:
-          database-url: sqlite:////github/workspace/test.db
+          database-url: sqlite:///test.db
           working-directory: tests/test_app
           alembic-config: alembic.ini
           revision: "001"
 
-      - name: Check current revision
-        id: check_rev
-        uses: ./
-        with:
-          database-url: sqlite:////github/workspace/test.db
-          working-directory: tests/test_app
-          alembic-config: alembic.ini
-          command: current
-
-      - name: Verify migration applied
+      - name: Verify migration succeeded
         run: |
-          echo "Current revision: ${{ steps.check_rev.outputs.current-revision }}"
-          if [ "${{ steps.check_rev.outputs.current-revision }}" != "001" ]; then
-            echo "ERROR: Migration not applied correctly"
+          echo "Migration status: ${{ steps.migrate.outputs.migration-status }}"
+          echo "Target revision: ${{ steps.migrate.outputs.target-revision }}"
+          if [ "${{ steps.migrate.outputs.migration-status }}" != "success" ]; then
+            echo "ERROR: Migration did not complete successfully"
             exit 1
           fi
-          echo "SUCCESS: Migration applied correctly"
+          if [ "${{ steps.migrate.outputs.target-revision }}" != "001" ]; then
+            echo "ERROR: Target revision mismatch"
+            exit 1
+          fi
+          echo "SUCCESS: Migration completed successfully"
+
+      - name: Upgrade to head
+        uses: ./
+        with:
+          database-url: sqlite:///test.db
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: head
 
   test-all-commands:
     name: Test All Alembic Commands
