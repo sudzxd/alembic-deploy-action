@@ -1,0 +1,109 @@
+name: Validate Published Action
+
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday
+  workflow_dispatch:
+
+jobs:
+  test-published-dry-run:
+    name: Test Published Action - Dry-Run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Test dry-run with published action
+        id: safe_preview
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: sqlite:///test.db
+          dry-run: true
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: "002"
+          analyze-safety: true
+
+      - name: Verify dry-run output
+        run: |
+          echo "Status: ${{ steps.safe_preview.outputs.migration-status }}"
+          echo "Is Safe: ${{ steps.safe_preview.outputs.is-safe }}"
+          if [ "${{ steps.safe_preview.outputs.migration-status }}" != "dry-run" ]; then
+            echo "ERROR: Dry-run did not execute correctly"
+            exit 1
+          fi
+          echo "SUCCESS: Published action dry-run works"
+
+      - name: Test dangerous migration detection
+        id: danger_preview
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: sqlite:///test.db
+          dry-run: true
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: "003"
+          analyze-safety: true
+          fail-on-danger: false
+
+      - name: Verify danger detection
+        run: |
+          if [ "${{ steps.danger_preview.outputs.is-safe }}" = "true" ]; then
+            echo "ERROR: Dangerous operations not detected"
+            exit 1
+          fi
+          echo "SUCCESS: Danger detection works in published action"
+
+  test-published-execution:
+    name: Test Published Action - Execution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Apply migration with published action
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: sqlite:///test.db
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: "001"
+
+      - name: Test current command
+        id: check
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: sqlite:///test.db
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          command: current
+
+      - name: Verify published action works
+        run: |
+          echo "Migration completed successfully"
+          echo "Current revision: ${{ steps.check.outputs.current-revision }}"
+
+  test-published-version:
+    name: Validate Action Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test with v1 tag
+        uses: sudzxd/alembic-deploy-action@v1
+        with:
+          database-url: sqlite:///test.db
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          command: current
+
+      - name: Test with specific version
+        uses: sudzxd/alembic-deploy-action@v1.0.0
+        with:
+          database-url: sqlite:///test.db
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          command: current
+
+      - name: Verify version tags work
+        run: echo "SUCCESS: Both v1 and v1.0.0 tags work correctly"
