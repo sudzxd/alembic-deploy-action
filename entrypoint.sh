@@ -59,9 +59,15 @@ validate_database_connection() {
 # -----------------------------------------------------------------------------
 
 get_current_revision() {
-    alembic -c "${ALEMBIC_CONFIG}" current 2>/dev/null | \
-        grep -oP '[a-f0-9]{12}' | \
-        head -n1 || echo "none"
+    local output
+    output=$(alembic -c "${ALEMBIC_CONFIG}" current 2>/dev/null || echo "")
+
+    if [ -z "$output" ] || echo "$output" | grep -q "None"; then
+        echo "none"
+        return
+    fi
+
+    echo "$output" | grep -oP '^\S+|(?<=\()[a-f0-9A-F]+(?=\))' | head -n1 || echo "none"
 }
 
 generate_migration_sql() {
