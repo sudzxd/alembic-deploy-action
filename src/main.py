@@ -51,18 +51,16 @@ def main() -> None:
         )
 
         # Initialize and Run State Machine
-        machine = StateMachine(
-            initial_state=InitState(),
-            context=context
-        )
+        machine = StateMachine(initial_state=InitState(), context=context)
         machine.run()
 
     except Exception as e:
         logger.error(f"Action failed: {e}")
-        # Build context quickly if possible to output failed status, 
+        # Build context quickly if possible to output failed status,
         # but simpler to just write to output directly or assume init failed
-        if os.getenv("GITHUB_OUTPUT"):
-            with open(os.getenv("GITHUB_OUTPUT"), "a") as f:
+        github_output = os.getenv("GITHUB_OUTPUT")
+        if github_output:
+            with open(github_output, "a") as f:
                 f.write(f"{OUTPUT_MIGRATION_STATUS}={STATUS_FAILED}\n")
         sys.exit(1)
 

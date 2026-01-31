@@ -13,38 +13,26 @@ from src.safety import DangerLevel, SafetyAnalyzer
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def analyzer() -> SafetyAnalyzer:
-    """Fixture providing a SafetyAnalyzer instance.
-    
-    Returns:
-        SafetyAnalyzer: A SafetyAnalyzer instance.
-    """
+    """Fixture providing a SafetyAnalyzer instance."""
     return SafetyAnalyzer()
+
 
 @pytest.fixture
 def danger_low() -> DangerLevel:
-    """Fixture providing a DangerLevel instance.
-    
-    Returns:
-        DangerLevel: A DangerLevel instance.
-    """
+    """Fixture providing DangerLevel.LOW."""
     return DangerLevel.LOW
+
 
 @pytest.fixture
 def danger_medium() -> DangerLevel:
-    """Fixture providing a DangerLevel instance.
-    
-    Returns:
-        DangerLevel: A DangerLevel instance.
-    """
+    """Fixture providing DangerLevel.MEDIUM."""
     return DangerLevel.MEDIUM
+
 
 @pytest.fixture
 def danger_high() -> DangerLevel:
-    """Fixture providing a DangerLevel instance.
-    
-    Returns:
-        DangerLevel: A DangerLevel instance.
-    """
+    """Fixture providing DangerLevel.HIGH."""
     return DangerLevel.HIGH

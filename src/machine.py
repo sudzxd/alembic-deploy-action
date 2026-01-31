@@ -6,7 +6,6 @@ from __future__ import annotations
 # IMPORTS
 # =============================================================================
 # Standard Library
-import logging
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
@@ -19,6 +18,7 @@ from src.logger import setup_logger
 logger = setup_logger(__name__)
 
 T = TypeVar("T")
+
 
 # =============================================================================
 # CORE CLASSES
@@ -57,7 +57,7 @@ class StateMachine(Generic[T]):
         while self.current_state:
             state_name = self.current_state.__class__.__name__
             logger.debug(f"Entering state: {state_name}")
-            
+
             try:
                 next_state = self.current_state.handle(self.context)
                 self.current_state = next_state

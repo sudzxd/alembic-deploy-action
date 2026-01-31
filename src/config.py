@@ -28,6 +28,7 @@ from src.constants import (
 )
 from src.env import EnvHandler
 
+
 # =============================================================================
 # CORE CLASSES
 # =============================================================================
@@ -45,6 +46,7 @@ class ActionConfig:
         analyze_safety: Whether to perform SQL safety analysis.
         fail_on_danger: Whether to fail the action if dangerous ops are found.
     """
+
     database_url: str
     command: str
     revision: str
@@ -75,8 +77,14 @@ class ActionConfig:
             command=EnvHandler.get_str(INPUT_COMMAND, default=DEFAULT_COMMAND),
             revision=EnvHandler.get_str(INPUT_REVISION, default=DEFAULT_REVISION),
             dry_run=EnvHandler.get_bool(INPUT_DRY_RUN, default=DEFAULT_DRY_RUN),
-            alembic_config_path=EnvHandler.get_str(INPUT_ALEMBIC_CONFIG, default=DEFAULT_ALEMBIC_CONFIG),
-            working_directory=EnvHandler.get_str(INPUT_WORKING_DIRECTORY, default=DEFAULT_WORKING_DIR),
+            alembic_config_path=EnvHandler.get_str(
+                INPUT_ALEMBIC_CONFIG, default=DEFAULT_ALEMBIC_CONFIG
+            ),
+            working_directory=EnvHandler.get_str(
+                INPUT_WORKING_DIRECTORY, default=DEFAULT_WORKING_DIR
+            ),
             analyze_safety=EnvHandler.get_bool(INPUT_ANALYZE_SAFETY, default="true"),
-            fail_on_danger=EnvHandler.get_bool(INPUT_FAIL_ON_DANGER, default=DEFAULT_FAIL_ON_DANGER),
+            fail_on_danger=EnvHandler.get_bool(
+                INPUT_FAIL_ON_DANGER, default=DEFAULT_FAIL_ON_DANGER
+            ),
         )

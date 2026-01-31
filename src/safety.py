@@ -21,11 +21,13 @@ from src.constants import (
     REGEX_TRUNCATE,
 )
 
+
 # =============================================================================
 # TYPES & CONSTANTS
 # =============================================================================
 class DangerLevel(StrEnum):
     """Safety danger levels."""
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -40,6 +42,7 @@ class SafetyReport:
         danger_level: The highest danger level detected.
         warnings: List of warning messages detailing detected issues.
     """
+
     is_safe: bool
     danger_level: DangerLevel
     warnings: list[str]

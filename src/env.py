@@ -7,6 +7,7 @@ from __future__ import annotations
 # =============================================================================
 import os
 
+
 # =============================================================================
 # CORE CLASSES
 # =============================================================================
@@ -67,5 +68,7 @@ class EnvHandler:
             raise ValueError(f"Environment variable '{key}' is required.")
         try:
             return int(val_str)
-        except ValueError:
-            raise ValueError(f"Environment variable '{key}' must be an integer.")
+        except ValueError as err:
+            raise ValueError(
+                f"Environment variable '{key}' must be an integer."
+            ) from err

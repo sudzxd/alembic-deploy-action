@@ -7,9 +7,7 @@ from __future__ import annotations
 # =============================================================================
 # Standard Library
 import os
-import sys
 from dataclasses import dataclass, field
-from typing import Optional
 
 # Project/Local
 from src.alembic_ops import AlembicRunner
@@ -27,7 +25,6 @@ from src.constants import (
     OUTPUT_TARGET_REVISION,
     OUTPUT_WARNINGS,
     STATUS_DRY_RUN,
-    STATUS_FAILED,
     STATUS_SUCCESS,
 )
 from src.logger import setup_logger
@@ -46,6 +43,7 @@ logger = setup_logger(__name__)
 @dataclass
 class ActionContext:
     """Context shared between states."""
+
     config: ActionConfig
     runner: AlembicRunner
     analyzer: SafetyAnalyzer
@@ -78,7 +76,9 @@ class InitState(State[ActionContext]):
             current_rev = context.runner.current()
             # Parse output to get just the revision hash if possible
             # Simplified parsing for now
-            current_rev_clean = current_rev.strip().split(" ")[0] if current_rev else "none"
+            current_rev_clean = (
+                current_rev.strip().split(" ")[0] if current_rev else "none"
+            )
         except Exception as e:
             logger.error(f"Failed to get current revision: {e}")
             raise
@@ -100,7 +100,7 @@ class DryRunState(State[ActionContext]):
     def handle(self, context: ActionContext) -> State[ActionContext] | None:
         """Generate SQL and perform safety analysis."""
         logger.info("Running in DRY-RUN mode")
-        
+
         try:
             sql_output = context.runner.upgrade(context.config.revision, sql=True)
         except Exception as e:
@@ -117,7 +117,7 @@ class DryRunState(State[ActionContext]):
 
         if context.config.analyze_safety:
             return SafetyCheckState(sql_content=sql_output)
-        
+
         return None  # End if no safety check needed
 
 
@@ -136,9 +136,9 @@ class SafetyCheckState(State[ActionContext]):
             logger.warning("SAFETY WARNINGS DETECTED:")
             for warning in report.warnings:
                 logger.warning(f"  - {warning}")
-            
+
             context.set_output(OUTPUT_WARNINGS, ";".join(report.warnings))
-        
+
         context.set_output(OUTPUT_IS_SAFE, str(report.is_safe).lower())
 
         if context.config.fail_on_danger and report.danger_level == DangerLevel.HIGH:
@@ -148,8 +148,8 @@ class SafetyCheckState(State[ActionContext]):
 
         if report.is_safe:
             logger.info("No dangerous operations detected.")
-        
-        return None # End of dry run flow
+
+        return None  # End of dry run flow
 
 
 class ExecutionState(State[ActionContext]):
@@ -177,10 +177,14 @@ class ExecutionState(State[ActionContext]):
 
         logger.info("Migration operation complete.")
         context.set_output(OUTPUT_MIGRATION_STATUS, STATUS_SUCCESS)
-        
+
         # Update revision output
         try:
-            new_rev = context.runner.current().strip().split(" ")[0] if context.runner.current() else "none"
+            new_rev = (
+                context.runner.current().strip().split(" ")[0]
+                if context.runner.current()
+                else "none"
+            )
             logger.info(f"New revision: {new_rev}")
         except Exception as e:
             logger.warning(f"Could not fetch new revision: {e}")
