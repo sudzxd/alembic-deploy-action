@@ -69,11 +69,11 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-    DATABASE_URL: ${{ inputs.database-url }}
-    ALEMBIC_COMMAND: ${{ inputs.command }}
-    ALEMBIC_REVISION: ${{ inputs.revision }}
-    DRY_RUN: ${{ inputs.dry-run }}
-    ALEMBIC_CONFIG: ${{ inputs.alembic-config }}
-    WORKING_DIR: ${{ inputs.working-directory }}
-    ANALYZE_SAFETY: ${{ inputs.analyze-safety }}
-    FAIL_ON_DANGER: ${{ inputs.fail-on-danger }}
+    INPUT_DATABASE_URL: ${{ inputs.database-url }}
+    INPUT_COMMAND: ${{ inputs.command }}
+    INPUT_REVISION: ${{ inputs.revision }}
+    INPUT_DRY_RUN: ${{ inputs.dry-run }}
+    INPUT_ALEMBIC_CONFIG: ${{ inputs.alembic-config }}
+    INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+    INPUT_ANALYZE_SAFETY: ${{ inputs.analyze-safety }}
+    INPUT_FAIL_ON_DANGER: ${{ inputs.fail-on-danger }}
