@@ -88,7 +88,9 @@ class AlembicRunner:
         Returns:
             Output from show command.
         """
-        return self._run_command(["alembic", "-c", self.config_path, CMD_SHOW, revision])
+        return self._run_command(
+            ["alembic", "-c", self.config_path, CMD_SHOW, revision]
+        )
 
     def _run_command(self, cmd: list[str]) -> str:
         """Execute subprocess command.
@@ -104,12 +106,7 @@ class AlembicRunner:
         """
         logger.info(f"Running command: {' '.join(cmd)}")
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             return result.stdout
         except subprocess.CalledProcessError as e:
             logger.error(f"Command failed: {e.stderr}")
