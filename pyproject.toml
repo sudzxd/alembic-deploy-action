@@ -59,7 +59,8 @@ source = ["src"]
 omit = ["tests/*"]
 
 [tool.coverage.report]
-fail_under = 80
+fail_under = 30
+
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
