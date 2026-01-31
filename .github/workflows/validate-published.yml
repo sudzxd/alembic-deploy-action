@@ -8,105 +8,93 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-published-dry-run:
-    name: Test Published Action - Dry-Run
+  validate-dry-run:
+    name: Validate Dry-Run
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Test dry-run with published action
-        id: safe_preview
+      - name: Test Safe Migration
+        id: safe
         uses: sudzxd/alembic-deploy-action@v1
         with:
           database-url: sqlite:///test.db
           dry-run: true
           working-directory: tests/test_app
-          alembic-config: alembic.ini
           revision: "002"
           analyze-safety: true
 
-      - name: Verify dry-run output
+      - name: Verify Safe Result
         run: |
-          echo "Status: ${{ steps.safe_preview.outputs.migration-status }}"
-          echo "Is Safe: ${{ steps.safe_preview.outputs.is-safe }}"
-          if [ "${{ steps.safe_preview.outputs.migration-status }}" != "dry-run" ]; then
-            echo "ERROR: Dry-run did not execute correctly"
-            exit 1
-          fi
-          echo "SUCCESS: Published action dry-run works"
+          [[ "${{ steps.safe.outputs.migration-status }}" == "dry-run" ]] || exit 1
+          [[ "${{ steps.safe.outputs.is-safe }}" == "true" ]] || exit 1
 
-      - name: Test dangerous migration detection
-        id: danger_preview
+      - name: Test Dangerous Migration
+        id: danger
         uses: sudzxd/alembic-deploy-action@v1
         with:
           database-url: sqlite:///test.db
           dry-run: true
           working-directory: tests/test_app
-          alembic-config: alembic.ini
           revision: "003"
           analyze-safety: true
           fail-on-danger: false
 
-      - name: Verify danger detection
+      - name: Verify Danger Detection
         run: |
-          if [ "${{ steps.danger_preview.outputs.is-safe }}" = "true" ]; then
-            echo "ERROR: Dangerous operations not detected"
-            exit 1
-          fi
-          echo "SUCCESS: Danger detection works in published action"
+          [[ "${{ steps.danger.outputs.is-safe }}" == "false" ]] || exit 1
 
-  test-published-execution:
-    name: Test Published Action - Execution
+  validate-execution:
+    name: Validate Execution
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Apply migration with published action
+      - name: Apply Migration
         uses: sudzxd/alembic-deploy-action@v1
         with:
           database-url: sqlite:///test.db
           working-directory: tests/test_app
-          alembic-config: alembic.ini
           revision: "001"
 
-      - name: Test current command
+      - name: Verify Revision
         id: check
         uses: sudzxd/alembic-deploy-action@v1
         with:
           database-url: sqlite:///test.db
           working-directory: tests/test_app
-          alembic-config: alembic.ini
           command: current
 
-      - name: Verify published action works
+      - name: Validate
         run: |
-          echo "Migration completed successfully"
-          echo "Current revision: ${{ steps.check.outputs.current-revision }}"
+          [[ "${{ steps.check.outputs.current-revision }}" == "001" ]] || exit 1
 
-  test-published-version:
-    name: Validate Action Version
+  validate-v1-tag:
+    name: Validate v1 Tag
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Test with v1 tag
+      - name: Test with v1
         uses: sudzxd/alembic-deploy-action@v1
         with:
           database-url: sqlite:///test.db
           working-directory: tests/test_app
-          alembic-config: alembic.ini
           command: current
 
-      - name: Test with specific version
+  validate-v1-0-0-tag:
+    name: Validate v1.0.0 Tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test with v1.0.0
         uses: sudzxd/alembic-deploy-action@v1.0.0
         with:
           database-url: sqlite:///test.db
           working-directory: tests/test_app
-          alembic-config: alembic.ini
           command: current
-
-      - name: Verify version tags work
-        run: echo "SUCCESS - Both v1 and v1.0.0 tags work correctly"

@@ -17,10 +17,10 @@ RUN pip install --no-cache-dir \
     pymysql \
     sqlalchemy>=2.0.0
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy source code
+COPY src /app/src
+ENV PYTHONPATH=/app
 
 WORKDIR /github/workspace
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["python", "/app/src/main.py"]

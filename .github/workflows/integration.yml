@@ -1,0 +1,86 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+jobs:
+  integration:
+    name: Dry-Run & Execution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------------
+      # Test 1: Dry Run (Safe)
+      # ------------------------------------------------------------------------
+      - name: Test Safe Dry-Run
+        id: safe_run
+        uses: ./
+        with:
+          database-url: sqlite:///test.db
+          dry-run: true
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: "002"
+          analyze-safety: true
+
+      - name: Verify Safe Result
+        run: |
+          if [[ "${{ steps.safe_run.outputs.migration-status }}" != "dry-run" ]]; then
+            echo "::error::Expected status 'dry-run', got '${{ steps.safe_run.outputs.migration-status }}'"
+            exit 1
+          fi
+          if [[ "${{ steps.safe_run.outputs.is-safe }}" != "true" ]]; then
+            echo "::error::Expected is-safe 'true', got '${{ steps.safe_run.outputs.is-safe }}'"
+            exit 1
+          fi
+
+      # ------------------------------------------------------------------------
+      # Test 2: Dry Run (Dangerous)
+      # ------------------------------------------------------------------------
+      - name: Test Dangerous Dry-Run
+        id: danger_run
+        uses: ./
+        with:
+          database-url: sqlite:///test.db
+          dry-run: true
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: "003"
+          analyze-safety: true
+          fail-on-danger: false
+
+      - name: Verify Danger Result
+        run: |
+          if [[ "${{ steps.danger_run.outputs.is-safe }}" == "true" ]]; then
+            echo "::error::Expected is-safe 'false', got 'true'"
+            exit 1
+          fi
+
+      # ------------------------------------------------------------------------
+      # Test 3: Actual Execution (Upgrade)
+      # ------------------------------------------------------------------------
+      - name: Run Upgrade
+        uses: ./
+        with:
+          database-url: sqlite:////github/workspace/test.db
+          working-directory: tests/test_app
+          alembic-config: alembic.ini
+          revision: head
+
+      - name: Verify Current Revision
+        uses: ./
+        id: verify_exec
+        with:
+          database-url: sqlite:////github/workspace/test.db
+          working-directory: tests/test_app
+          command: current
+
+      - name: Validate Revision
+        run: |
+          echo "Current: ${{ steps.verify_exec.outputs.current-revision }}"
