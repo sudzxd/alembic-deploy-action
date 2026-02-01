@@ -7,7 +7,7 @@ from __future__ import annotations
 # =============================================================================
 # Standard Library
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 # Project/Local
 from src.constants import (
@@ -26,27 +26,67 @@ from src.constants import (
     STATUS_SUCCESS,
 )
 from src.logger import setup_logger
-from src.safety import DangerLevel
+from src.safety import DangerLevel, SafetyReport
 
 if TYPE_CHECKING:
     from src.states import ActionContext
+
 
 # =============================================================================
 # TYPES & CONSTANTS
 # =============================================================================
 logger = setup_logger(__name__)
 
-T = TypeVar("T")
+
+# =============================================================================
+# PROTOCOLS (for testing)
+# =============================================================================
+class ConfigProtocol(Protocol):
+    """Protocol for action configuration."""
+
+    command: str
+    revision: str
+    dry_run: bool
+    analyze_safety: bool
+    fail_on_danger: bool
+
+
+class RunnerProtocol(Protocol):
+    """Protocol for Alembic runner."""
+
+    def current(self) -> str: ...
+    def upgrade(self, revision: str, sql: bool = False) -> str: ...
+    def downgrade(self, revision: str) -> str: ...
+    def history(self) -> str: ...
+    def show(self, revision: str) -> str: ...
+
+
+class AnalyzerProtocol(Protocol):
+    """Protocol for safety analyzer."""
+
+    def analyze(self, sql: str) -> SafetyReport: ...
+
+
+@runtime_checkable
+class ActionContextProtocol(Protocol):
+    """Protocol for action context."""
+
+    config: ConfigProtocol
+    runner: RunnerProtocol
+    analyzer: AnalyzerProtocol
+    sql_preview: str
+
+    def set_output(self, key: str, value: str) -> None: ...
 
 
 # =============================================================================
 # CORE CLASSES
 # =============================================================================
-class Command(ABC, Generic[T]):
+class Command(ABC):
     """Abstract base command for execution logic."""
 
     @abstractmethod
-    def execute(self, context: T) -> None:
+    def execute(self, context: ActionContext) -> None:
         """Execute the command.
 
         Args:
@@ -55,7 +95,7 @@ class Command(ABC, Generic[T]):
         pass
 
 
-class InitCommand(Command["ActionContext"]):
+class InitCommand(Command):
     """Initialize and get current database revision."""
 
     def execute(self, context: ActionContext) -> None:
@@ -77,7 +117,7 @@ class InitCommand(Command["ActionContext"]):
         logger.info(f"Target revision: {context.config.revision}")
 
 
-class DryRunCommand(Command["ActionContext"]):
+class DryRunCommand(Command):
     """Generate SQL preview without executing."""
 
     def execute(self, context: ActionContext) -> None:
@@ -102,7 +142,7 @@ class DryRunCommand(Command["ActionContext"]):
         context.sql_preview = sql_output
 
 
-class SafetyCheckCommand(Command["ActionContext"]):
+class SafetyCheckCommand(Command):
     """Analyze SQL for dangerous operations."""
 
     def execute(self, context: ActionContext) -> None:
@@ -132,7 +172,7 @@ class SafetyCheckCommand(Command["ActionContext"]):
             logger.info("No dangerous operations detected.")
 
 
-class ExecutionCommand(Command["ActionContext"]):
+class ExecutionCommand(Command):
     """Execute the actual Alembic command."""
 
     def execute(self, context: ActionContext) -> None:
