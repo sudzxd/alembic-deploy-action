@@ -15,6 +15,7 @@ from src.config import ActionConfig
 from src.constants import OUTPUT_MIGRATION_STATUS, STATUS_FAILED
 from src.logger import setup_logger
 from src.machine import StateMachine
+from src.observers import LoggingObserver, OutputObserver
 from src.safety import SafetyAnalyzer
 from src.states import ActionContext, InitState
 
@@ -50,8 +51,10 @@ def main() -> None:
             analyzer=SafetyAnalyzer(),
         )
 
-        # Initialize and Run State Machine
+        # Initialize State Machine with Observers
         machine = StateMachine(initial_state=InitState(), context=context)
+        machine.add_observer(LoggingObserver())
+        machine.add_observer(OutputObserver())
         machine.run()
 
     except Exception as e:
